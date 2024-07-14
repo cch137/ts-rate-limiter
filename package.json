@@ -1,0 +1,33 @@
+{
+  "name": "@cch137/rate-limiter",
+  "version": "0.1.0",
+  "description": "",
+  "type": "module",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "scripts": {
+    "devbuild": "tsc -w",
+    "devstart": "nodemon ./dist/index.test.js",
+    "test": "npm-run-all --parallel devbuild devstart",
+    "build": "npm i && tsc",
+    "start": "node ./dist/index.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cch137/ts-rate-limiter"
+  },
+  "keywords": [
+    "cch137",
+    "emitter"
+  ],
+  "author": "cch137",
+  "license": "ISC",
+  "devDependencies": {
+    "npm-run-all": "^4.1.5",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}
