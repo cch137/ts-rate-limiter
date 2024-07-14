@@ -1,70 +1,79 @@
-# @cch137/emitter
+# @cch137/rate-limiter
 
 ## Overview
 
-`@cch137/emitter` is a versatile event emitter package designed to work seamlessly in both browser and Node.js environments. It provides a simple yet powerful interface for managing event-driven architecture in your applications.
+`@cch137/rate-limiter` is a module designed to help manage rate limiting for various applications. It allows you to define rules for how many points an identifier (e.g., a user or an IP address) can accumulate within a specified time window. The `RateLimiter` class is the primary export of this module.
 
-## Features
+## Installation
 
-- **Cross-Platform Compatibility**: Works in both browser and Node.js environments.
-- **Flexible Event Management**: Easily manage listeners for different event types.
-- **One-Time Event Listeners**: Support for listeners that are automatically removed after their first invocation.
-- **Event Emission**: Emit events with any number of arguments.
-- **Listener Removal**: Remove specific listeners or clear all listeners for an event.
+You can install the `@cch137/rate-limiter` module via npm:
+
+```sh
+npm install @cch137/rate-limiter
+```
 
 ## Usage
 
-### Creating an Emitter
+Here's a basic example to get you started with the `RateLimiter` class.
 
-```typescript
-import Emitter from "@cch137/emitter";
+```javascript
+import RateLimiter from "@cch137/rate-limiter";
 
-type MyEvents = {
-  event1: [string, number];
-  event2: [boolean];
-};
+// Create a rate limiter with a rule that allows a maximum of 5 points per second
+const rl = new RateLimiter([RateLimiter.rule(1000, 5)]);
 
-const emitter = new Emitter<MyEvents>();
+// Consume points for identifier "a"
+rl.consume("a", 5);
+rl.consume("a", 5);
+
+// Check if identifier "a" exceeds the rate limit
+console.log(rl.check("a")); // false, because 10 points are consumed within 1 second
+
+// Check again after 900 milliseconds
+setTimeout(() => console.log(rl.check("a")), 900); // false, because 10 points are still within 1 second
+
+// Check after 1000 milliseconds
+setTimeout(() => console.log(rl.check("a")), 1000); // true, because the initial points are now outside the 1-second window
+
+// Check after 1100 milliseconds
+setTimeout(() => console.log(rl.check("a")), 1100); // true, because the points are outside the 1-second window
+
+// Log the current state of the rate limiter
+setTimeout(() => console.log(rl), 1200);
 ```
 
-### Adding Listeners
+## API
 
-#### Regular Listeners
+### `RateLimiter`
 
-```typescript
-emitter.on("event1", (arg1, arg2) => {
-  console.log(`event1 received with args: ${arg1}, ${arg2}`);
-});
-```
+#### `constructor(rules: RateRule[])`
 
-#### One-Time Listeners
+Creates a new `RateLimiter` instance with the specified rules.
 
-```typescript
-emitter.once("event2", (arg1) => {
-  console.log(`event2 received with arg: ${arg1}`);
-});
-```
+- `rules`: An array of `RateRule` objects defining the rate limiting rules.
 
-### Emitting Events
+#### `static rule(milliseconds: number, maxPoints: number): RateRule`
 
-```typescript
-emitter.emit("event1", "hello", 42); // Logs: event1 received with args: hello, 42
-emitter.emit("event2", true); // Logs: event2 received with arg: true
-```
+Creates a new `RateRule` instance.
 
-### Removing Listeners
+- `milliseconds`: The time window in milliseconds.
+- `maxPoints`: The maximum points allowed within the specified time window.
 
-```typescript
-const listener = (arg1, arg2) => {
-  console.log(`event1 received with args: ${arg1}, ${arg2}`);
-};
+#### `check(id: string): boolean`
 
-emitter.on("event1", listener);
-emitter.off("event1", listener);
-```
+Checks if the given identifier is within the rate limit based on the defined rules.
 
-### Clearing All Listeners for an Event
+- `id`: The identifier to check (e.g., a user ID or IP address).
+- Returns `true` if the identifier is within the rate limit, `false` otherwise.
 
-```typescript
-emitter.clear("event1");
-```
+#### `consume(id: string, points: number = 1): this`
+
+Consumes points for the given identifier. If the identifier does not exist, it is created.
+
+- `id`: The identifier to consume points for.
+- `points`: The number of points to consume (default is 1).
+- Returns the `RateLimiter` instance for chaining.
+
+#### `trim()`
+
+Trims expired logs from all records based on the maximum time window defined in the rules.
